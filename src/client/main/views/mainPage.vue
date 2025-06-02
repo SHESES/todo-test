@@ -391,6 +391,24 @@ export default {
       });
     },
 
+    addTask(projectId) {
+      const project = this.projects.find(p => p.id === projectId);
+      if (!project) return;
+
+      const newTask = {
+        id: uuidv4(),
+        title: 'Новая задача',
+        status: 'todo',
+        tags: [],
+        subtasks: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      project.tasks.unshift(newTask);
+      this.projects = [...this.projects]; // чтобы триггернуть реактивность, если надо
+    },
+
     filterAndSortTasks(tasks) {
       if (!tasks) return [];
 
