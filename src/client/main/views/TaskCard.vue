@@ -52,7 +52,7 @@
           {{ getStatusText(task.status) }}
         </div>
 
-        <div v-else class="flex gap-2">
+        <div v-else class="flex flex-wrap gap-2">
           <button
               v-for="s in ['todo', 'in-progress', 'done']"
               :key="s"
@@ -81,6 +81,19 @@
         >
           {{ tag }}
         </div>
+      </div>
+
+      <!-- Плюсик, если тегов нет -->
+      <div
+        v-else-if="!editingTags"
+        class="mb-4"
+      >
+        <button
+          @click="() => { startEditingTags(); addNewTag(); }"
+          class="inline-flex items-center rounded-full justify-center w-6 h-6 text-green-600
+          font-bold border border-green-600 cursor-pointer hover:bg-green-100"
+          title="Добавить тег"
+        >+</button>
       </div>
 
       <!-- Режим редактирования тегов -->
@@ -118,7 +131,8 @@
 
         <button
             @click="addNewTag"
-            class="inline-flex items-center rounded-full justify-center w-6 h-6 text-green-600 font-bold border border-green-600 cursor-pointer hover:bg-green-100"
+            class="inline-flex items-center rounded-full justify-center w-6 h-6 text-green-600 font-bold
+            border border-green-600 cursor-pointer hover:bg-green-100"
             title="Добавить тег"
         >+</button>
       </div>
