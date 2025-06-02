@@ -9,89 +9,122 @@ const standart_filters = {
 const for_test = [
     {
         id: 'p1',
-        name: 'Основной проект',
+        name: 'Домашние дела',
         tasks: [
             {
                 id: '1',
-                title: 'Разработать главную страницу',
+                title: 'Убраться в комнате',
                 status: 'in-progress',
-                tags: ['frontend', 'design'],
+                tags: ['уборка', 'дом'],
                 subtasks: [
                     {
                         id: '1-1',
-                        title: 'Сверстать хедер',
+                        title: 'Пропылесосить ковёр',
                         status: 'done',
-                        tags: ['frontend'],
-                        createdAt: new Date('2023-05-15'),
-                        updatedAt: new Date('2023-05-16')
+                        tags: ['уборка'],
+                        createdAt: new Date('2025-05-30'),
+                        updatedAt: new Date('2025-05-31')
                     },
                     {
                         id: '1-2',
-                        title: 'Сделать адаптив',
+                        title: 'Протереть пыль',
                         status: 'todo',
-                        tags: ['frontend', 'responsive'],
-                        createdAt: new Date('2023-05-15'),
-                        updatedAt: new Date('2023-05-16')
+                        tags: ['уборка'],
+                        createdAt: new Date('2025-05-30'),
+                        updatedAt: new Date('2025-05-31')
                     }
                 ],
-                createdAt: new Date('2023-05-15'),
-                updatedAt: new Date('2023-05-16')
+                createdAt: new Date('2025-05-30'),
+                updatedAt: new Date('2025-05-31')
             },
             {
                 id: '2',
-                title: 'Написать API для задач',
+                title: 'Постирать одежду',
                 status: 'todo',
-                tags: ['backend', 'nodejs'],
+                tags: ['дом', 'прачечная'],
                 subtasks: [],
-                createdAt: new Date('2023-05-10'),
-                updatedAt: new Date('2023-05-10')
+                createdAt: new Date('2025-05-29'),
+                updatedAt: new Date('2025-05-29')
             }
         ]
     },
     {
         id: 'p2',
-        name: 'Второстепенный проект',
+        name: 'Работа',
         tasks: [
             {
                 id: '3',
-                title: 'Разработать логику для задач',
-                status: 'done',
-                tags: ['frontend', 'logic'],
-                createdAt: new Date('2025-06-01'),
-                updatedAt: new Date('2025-06-01')
+                title: 'Подготовить презентацию для встречи',
+                status: 'todo',
+                tags: ['работа', 'презентация'],
+                subtasks: [
+                    {
+                        id: '3-1',
+                        title: 'Собрать данные',
+                        status: 'done',
+                        tags: ['исследование'],
+                        createdAt: new Date('2025-05-28'),
+                        updatedAt: new Date('2025-05-29')
+                    },
+                    {
+                        id: '3-2',
+                        title: 'Сделать слайды',
+                        status: 'todo',
+                        tags: ['презентация', 'дизайн'],
+                        createdAt: new Date('2025-05-30'),
+                        updatedAt: new Date('2025-05-30')
+                    }
+                ],
+                createdAt: new Date('2025-05-28'),
+                updatedAt: new Date('2025-05-30')
             },
             {
                 id: '4',
-                title: 'Протестировать API',
-                status: 'in-progress',
-                tags: ['testing', 'backend'],
-                createdAt: new Date('2025-06-02'),
-                updatedAt: new Date('2025-06-02')
+                title: 'Отправить отчёт руководителю',
+                status: 'done',
+                tags: ['работа', 'отчёт'],
+                subtasks: [],
+                createdAt: new Date('2025-05-27'),
+                updatedAt: new Date('2025-05-27')
             }
         ]
     },
     {
         id: 'p3',
-        name: 'Личный проект',
+        name: 'Личное развитие',
         tasks: [
             {
                 id: '5',
-                title: 'Добавить аутентификацию',
-                status: 'todo',
-                tags: ['security', 'backend'],
+                title: 'Прочитать книгу "Война и мир" для нагрузочного тестирования',
+                status: 'in-progress',
+                tags: ['чтение', 'саморазвитие', 'тестирование'],
                 subtasks: [],
-                createdAt: new Date('2025-06-03'),
-                updatedAt: new Date('2025-06-03')
+                createdAt: new Date('2025-05-20'),
+                updatedAt: new Date('2025-05-31')
+            },
+            {
+                id: '6',
+                title: 'Выучить базовые команды Git',
+                status: 'todo',
+                tags: ['обучение', 'программирование'],
+                subtasks: [],
+                createdAt: new Date('2025-05-22'),
+                updatedAt: new Date('2025-05-22')
             }
         ]
     }
 ];
 
+const STORAGE_KEY = 'data';
+const savedData = localStorage.getItem(STORAGE_KEY);
+
+const initialData = savedData
+    ? JSON.parse(savedData)
+    : { projects: for_test, filters: standart_filters };
+console.log(initialData);
+
 const state = {
-    data: {
-        projects: for_test,
-        filters: standart_filters
-    },
+    data: initialData,
     openedProjects: JSON.parse(localStorage.getItem("openedProjects")) || [],
 };
 
@@ -105,11 +138,12 @@ const getters = {
 const mutations = {
     SET_PROJECTS: (state, payload) => {
         state.data.projects = payload;
-        localStorage.setItem("data", JSON.stringify(state.data));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+        console.log('Список проектов обновился');
     },
     SET_FILTERS: (state, payload) => {
         state.data.filters = { ...payload };
-        localStorage.setItem('data', JSON.stringify(state.data));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
     },
 
     SET_OPENED_PROJECTS: (state, payload) => {

@@ -106,7 +106,7 @@
 
             <span
               v-if="editingTagIndex !== index"
-              @click="startTagEditing(index, tag)">
+              @click="startTagEditing(index)">
               {{ tag }}
             </span>
             <input
@@ -270,16 +270,14 @@ export default {
         updatedAt: new Date().toISOString()
       };
 
-      // Если подзадачи ещё не были заданы
-      if (!this.task.subtasks) {
-        this.$set(this.task, 'subtasks', []);
-      }
+      // Формируем новый массив субтасков
+      const newSubtasks = this.task.subtasks ? [newSubtask, ...this.task.subtasks] : [newSubtask];
 
-      this.task.subtasks.unshift(newSubtask);
-
+      // Эмитим событие с обновлённым массивом субтасков
       this.$emit('update-subtask', {
         projectId: this.projectId,
         taskId: this.task.id,
+        subtasks: newSubtasks
       });
     },
 
@@ -301,9 +299,9 @@ export default {
     },
 
     /* Режим редактирования тегов */
-    startTagEditing(index, tag) {
+    startTagEditing(index) {
       this.editingTagIndex = index;
-      this.$set(this.tagsDraft, index, tag); // локальная копия, чтобы не ломать оригинал
+      // НЕ нужно ничего перезаписывать тут
       this.$nextTick(() => {
         const input = this.$refs['tagInput_' + index];
         if (input && input.focus) input.focus();

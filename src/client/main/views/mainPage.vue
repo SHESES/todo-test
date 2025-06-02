@@ -167,47 +167,12 @@ export default {
     },
     filteredProjects() {
       return this.projects.map(project => {
-        let filteredTasks = project.tasks || [];
-
-        // Фильтрация по статусу
-        filteredTasks = filteredTasks.filter(task =>
-          this.filters.statuses.includes(task.status)
-        );
-
-        // Фильтрация по тегам (если указаны)
-        if (this.filters.tags.length) {
-          filteredTasks = filteredTasks.filter(task =>
-            task.tags?.some(tag => this.filters.tags.includes(tag))
-          );
-        }
-
-        // Фильтрация по названию
-        if (this.filters.search.trim()) {
-          const searchLower = this.filters.search.toLowerCase();
-          filteredTasks = filteredTasks.filter(task =>
-            task.title.toLowerCase().includes(searchLower)
-          );
-        }
-
-        // Показывать только не завершённые, если `show_completed` выключен
-        if (!this.filters.show_completed) {
-          filteredTasks = filteredTasks.filter(task => task.status !== 'done');
-        }
-
-        // Сортировка
-        filteredTasks = filteredTasks.sort((a, b) => {
-          const key = this.filters.sort_by || 'updatedAt';
-          return new Date(b[key]) - new Date(a[key]); // по убыванию (новее — выше)
-        });
-
         return {
           ...project,
-          tasks: filteredTasks
+          tasks: this.filterAndSortTasks(project.tasks)
         };
       });
     }
-  },
-  created() {
   },
   methods: {
     /* Добавление проекта */
@@ -280,29 +245,31 @@ export default {
         task.tags = tags;
         task.updatedAt = new Date().toISOString();
       }
+
+      this.projects = [...this.projects];
     },
     handleUpdateStatus({ projectId, taskId, subtaskId, status }) {
       const project = this.projects.find(p => p.id === projectId);
       if (!project) return;
 
       if (subtaskId) {
-        // Обновление подзадачи
         const task = project.tasks.find(t => t.id === taskId);
         if (!task || !task.subtasks) return;
-
         const subtask = task.subtasks.find(s => s.id === subtaskId);
         if (subtask) {
           subtask.status = status;
           subtask.updatedAt = new Date().toISOString();
         }
       } else {
-        // Обновление обычной задачи
         const task = project.tasks.find(t => t.id === taskId);
         if (task) {
           task.status = status;
           task.updatedAt = new Date().toISOString();
         }
       }
+
+      // Триггерим реактивность
+      this.projects = [...this.projects];
     },
     handleUpdateTitle({ projectId, taskId, subtaskId, newTitle }) {
       if (subtaskId) {
@@ -319,6 +286,8 @@ export default {
           task.updatedAt = new Date().toISOString();
         }
       }
+
+      this.projects = [...this.projects];
     },
     findTaskById(projectId, taskId) {
       const project = this.projects.find(p => p.id === projectId);
@@ -373,6 +342,8 @@ export default {
 
       subtask.status = subtask.status === 'done' ? 'todo' : 'done';
       subtask.updatedAt = new Date().toISOString();
+
+      this.projects = [...this.projects];
     },
 
     /* Удаление задачи */
@@ -380,6 +351,7 @@ export default {
       const project = this.projects.find(p => p.id === projectId);
       if (project) {
         project.tasks = project.tasks.filter(t => t.id !== taskId);
+        this.projects = [...this.projects];
       }
     },
     handleDeleteSubtask({ projectId, taskId, subtaskId }) {
@@ -390,28 +362,72 @@ export default {
       task.subtasks = task.subtasks.filter(st => st.id !== subtaskId);
       task.updatedAt = new Date().toISOString();
     },
-    handleUpdateTask({ projectId, taskId }) {
-      const project = this.projects.find(p => p.id === projectId);
-      const task = project.tasks.find(t => t.id === taskId);
-      task.updatedAt = new Date().toISOString();
-    },
+    handleUpdateTask({ projectId, taskId, subtasks }) {
+      const projectIndex = this.projects.findIndex(p => p.id === projectId);
+      if (projectIndex === -1) return;
 
-    addTask(projectId) {
-      const project = this.projects.find(p => p.id === projectId);
-      if (!project) return;
+      const project = this.projects[projectIndex];
+      const taskIndex = project.tasks.findIndex(t => t.id === taskId);
+      if (taskIndex === -1) return;
 
-      const newTask = {
-        id: uuidv4(),
-        title: 'Новая задача',
-        status: 'todo',
-        tags: [],
-        subtasks: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      // Клонируем задачу с обновлёнными субтасками и updatedAt
+      const updatedTask = {
+        ...project.tasks[taskIndex],
+        subtasks: subtasks,            // обновляем подзадачи
+        updatedAt: new Date().toISOString()
       };
 
-      project.tasks.unshift(newTask);
-      this.projects = [...this.projects]; // чтобы триггернуть реактивность, если надо
+      // Обновляем задачи проекта, создавая новый массив
+      const updatedTasks = [
+        ...project.tasks.slice(0, taskIndex),
+        updatedTask,
+        ...project.tasks.slice(taskIndex + 1)
+      ];
+
+      // Обновляем проект (создаем новый объект с обновленными задачами)
+      this.projects.splice(projectIndex, 1, {
+        ...project,
+        tasks: updatedTasks
+      });
+    },
+
+    filterAndSortTasks(tasks) {
+      if (!tasks) return [];
+
+      // Фильтрация по статусу
+      let filtered = tasks.filter(task => this.filters.statuses.includes(task.status));
+
+      // Фильтрация по тегам
+      if (this.filters.tags.length) {
+        filtered = filtered.filter(task =>
+          task.tags?.some(tag => this.filters.tags.includes(tag))
+        );
+      }
+
+      // Фильтрация по названию
+      if (this.filters.search.trim()) {
+        const searchLower = this.filters.search.toLowerCase();
+        filtered = filtered.filter(task =>
+          task.title.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Показывать только не завершённые, если `show_completed` выключен
+      if (!this.filters.show_completed) {
+        filtered = filtered.filter(task => task.status !== 'done');
+      }
+
+      // Рекурсивно фильтруем и сортируем подзадачи
+      filtered = filtered.map(task => ({
+        ...task,
+        subtasks: this.filterAndSortTasks(task.subtasks)
+      }));
+
+      // Сортировка
+      const key = this.filters.sort_by || 'updatedAt';
+      filtered.sort((a, b) => new Date(b[key]) - new Date(a[key]));
+
+      return filtered;
     }
   }
 };
