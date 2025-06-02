@@ -161,7 +161,7 @@
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 mr-1 text-gray-600 transition-transform duration-200"
+              class="h-5 w-5 mr-1 text-red-600 transition-transform duration-200"
               :class="{ 'rotate-90': showImportForm }"
               fill="none"
               viewBox="0 0 24 24"
@@ -191,7 +191,7 @@
               />
               <button
                 @click="importData"
-                class="w-full bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2 rounded mt-2 transition"
+                class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded mt-2 transition"
               >
                 Импортировать
               </button>
@@ -204,7 +204,7 @@
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 mr-1 text-gray-600 transition-transform duration-200"
+              class="h-5 w-5 mr-1 text-red-600 transition-transform duration-200"
               :class="{ 'rotate-90': showExportForm }"
               fill="none"
               viewBox="0 0 24 24"
@@ -228,14 +228,13 @@
               />
               <button
                 @click="exportData"
-                class="w-full bg-gray-700 text-white py-2 rounded"
+                class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded"
               >
                 Экспортировать
               </button>
             </div>
           </transition>
         </div>
-
 
 
       </div>
