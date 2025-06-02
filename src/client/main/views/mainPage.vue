@@ -10,10 +10,11 @@
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
-          type="text"
-          v-model="filters.search"
-          placeholder="Поиск..."
-          class="w-full pl-[36px] pb-1 border-b border-gray-300 focus:outline-none focus:border-gray-600 text-gray-700"
+            type="text"
+            :value="filters.search"
+            @input="e => updateSearch(e.target.value)"
+            placeholder="Поиск..."
+            class="w-full pl-[36px] pb-1 border-b border-gray-300 focus:outline-none focus:border-gray-600 text-gray-700"
         />
       </div>
 
@@ -449,6 +450,12 @@ export default {
       filtered.sort((a, b) => new Date(b[key]) - new Date(a[key]));
 
       return filtered;
+    },
+    updateSearch(value) {
+      this.filters = {
+        ...this.filters,
+        search: value
+      };
     }
   }
 };

@@ -60,7 +60,7 @@
             type="button"
             class="relative inline-flex h-4 w-7 items-center rounded-full transition-colors cursor-pointer"
             :class="filters.show_completed ? 'bg-red-600' : 'bg-gray-200'"
-            @click="filters.show_completed = !filters.show_completed"
+            @click="toggleShowCompleted"
           >
             <span
               class="inline-block h-2 w-2 transform rounded-full bg-white transition-transform"
@@ -72,7 +72,10 @@
         <!-- Сортировка -->
         <div class="mb-4">
           <label class="block text-sm font-medium mb-1">Сортировка</label>
-          <select v-model="filters.sort_by" class="w-full border-gray-300 rounded-md cursor-pointer">
+          <select
+              :value="filters.sort_by"
+              @change="e => updateSortBy(e.target.value)"
+              class="w-full border-gray-300 rounded-md cursor-pointer">
             <option value="title">По названию</option>
             <option value="createdAt">По дате создания</option>
             <option value="updatedAt">По дате изменения</option>
@@ -108,7 +111,13 @@
               <input
                 type="checkbox"
                 :value="tag"
-                v-model="filters.tags"
+                :checked="filters.tags.includes(tag)"
+                @change="e => {
+                  const newTags = e.target.checked
+                    ? [...filters.tags, tag]
+                    : filters.tags.filter(t => t !== tag);
+                  updateTags(newTags);
+                }"
                 class="mr-2 rounded"
               />
               {{ tag }}
@@ -266,14 +275,6 @@ export default {
       importFile: null,
     }
   },
-  watch: {
-    filters: {
-      handler(newVal) {
-        console.log('Filters changed:', newVal);
-      },
-      deep: true,
-    }
-  },
   computed: {
     filters: {
       get() {
@@ -386,21 +387,40 @@ export default {
       }
     },
     toggleStatusFilter(status) {
-      if (this.filters.statuses.includes(status)) {
-        this.filters.statuses = this.filters.statuses.filter(s => s !== status);
-      } else {
-        this.filters.statuses.push(status);
-      }
+      // Создаем новый массив статусов
+      const newStatuses = this.filters.statuses.includes(status)
+          ? this.filters.statuses.filter(s => s !== status)
+          : [...this.filters.statuses, status];
+
+      // Обновляем фильтры через сеттер
+      this.filters = {
+        ...this.filters,
+        statuses: newStatuses
+      };
     },
-    togglePanel(panel) {
-      if (panel === 'import') {
-        this.showImportForm = !this.showImportForm;
-        if (this.showImportForm) this.showExportForm = false;
-      } else if (panel === 'export') {
-        this.showExportForm = !this.showExportForm;
-        if (this.showExportForm) this.showImportForm = false;
-      }
+
+    updateTags(newTags) {
+      this.filters = {
+        ...this.filters,
+        tags: newTags
+      };
     },
+
+    // Для переключателя show_completed
+    toggleShowCompleted() {
+      this.filters = {
+        ...this.filters,
+        show_completed: !this.filters.show_completed
+      };
+    },
+
+    updateSortBy(value) {
+      this.filters = {
+        ...this.filters,
+        sort_by: value
+      };
+    },
+
     resetFilters() {
       console.log('reset filters');
       this.$store.dispatch('RESET_FILTERS');

@@ -6,7 +6,6 @@ const savedData = localStorage.getItem(STORAGE_KEY);
 const initialData = savedData
     ? JSON.parse(savedData)
     : { projects: for_test, filters: standart_filters };
-console.log(initialData);
 
 const state = {
     data: initialData,
