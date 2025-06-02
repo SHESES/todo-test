@@ -90,24 +90,21 @@
               class="tag relative inline-flex items-center rounded px-2.5 py-0.5 text-m font-medium select-none cursor-text"
               @click.stop="startTagEditing(index)"
           >
-            <span
-                v-if="editingTagIndex !== index"
-                @mousedown.prevent="startTagEditing(index)"
-            >
-              {{ tag }}
-            </span>
 
             <span
-                v-else
-                :ref="'tagInput' + index"
-                contenteditable="true"
-                class="border-b border-blue-500 focus:outline-none min-w-[1.5rem]"
-                @input="onTagInput($event, index)"
-                @keydown.enter.prevent="finishTagEditing(index)"
-                @blur="finishTagEditing(index)"
-            >
+              v-if="editingTagIndex !== index"
+              @click="startTagEditing(index, tag)">
               {{ tag }}
             </span>
+            <input
+              v-else
+              v-model="tagsDraft[index]"
+              :ref="'tagInput_' + index"
+              @blur="finishTagEditing(index)"
+              @keyup.enter="finishTagEditing(index)"
+              class="border-b border-blue-500 focus:outline-none min-w-[1.5rem]"
+              autofocus
+            />
 
             <button
                 @click.stop="deleteTag(index)"
@@ -123,9 +120,7 @@
             @click="addNewTag"
             class="inline-flex items-center rounded-full justify-center w-6 h-6 text-green-600 font-bold border border-green-600 cursor-pointer hover:bg-green-100"
             title="Добавить тег"
-        >
-          +
-        </button>
+        >+</button>
       </div>
 
       <button
@@ -292,43 +287,22 @@ export default {
     },
 
     /* Режим редактирования тегов */
-    onTagInput(event, index) {
-      const el = event.target;
-      if (!el || !el.innerText) return;
-      this.tagsDraft[index] = el.innerText.trim();
-    },
-    startTagEditing(index) {
-      /* автофокус не всегда работает */
+    startTagEditing(index, tag) {
       this.editingTagIndex = index;
+      this.$set(this.tagsDraft, index, tag); // локальная копия, чтобы не ломать оригинал
       this.$nextTick(() => {
-        let el = this.$refs['tagInput' + index];
-        if (!el) return;
-
-        if (Array.isArray(el)) el = el[0];
-        if (!(el instanceof HTMLElement)) return;
-        if (!el.isConnected) return;
-
-        el.focus();
-
-        const selection = window.getSelection();
-        const range = document.createRange();
-
-        // Убьем все выделения и поставим курсор в конец содержимого
-        range.selectNodeContents(el);
-        range.collapse(false);
-
-        selection.removeAllRanges();
-        selection.addRange(range);
+        const input = this.$refs['tagInput_' + index];
+        if (input && input.focus) input.focus();
       });
     },
     finishTagEditing(index) {
-      const val = this.tagsDraft[index].trim();
+      const val = this.tagsDraft[index]?.trim();
       if (!val) {
         this.deleteTag(index);
       } else {
         this.tagsDraft.splice(index, 1, val);
-        this.editingTagIndex = null;
       }
+      this.editingTagIndex = null;
     },
     startEditingTags() {
       this.editingTags = true;
@@ -344,13 +318,12 @@ export default {
     addNewTag() {
       this.tagsDraft.push('');
       this.editingTagIndex = this.tagsDraft.length - 1;
+
       this.$nextTick(() => {
-        const refName = 'tagInput' + this.editingTagIndex;
+        const refName = 'tagInput_' + this.editingTagIndex;
         let el = this.$refs[refName];
         if (Array.isArray(el)) el = el[0];
-        if (el && typeof el.focus === 'function') {
-          el.focus();
-        }
+        if (el && el.focus) el.focus();
       });
     },
 
@@ -358,10 +331,9 @@ export default {
       this.editingTags = false;
       this.editingTagIndex = null;
 
-      // Фильтруем пустые теги
       const cleanedTags = this.tagsDraft
-          .map(tag => tag.trim())
-          .filter(tag => tag.length);
+        .map(tag => tag.trim())
+        .filter(tag => tag.length);
 
       if (JSON.stringify(cleanedTags) !== JSON.stringify(this.task.tags)) {
         this.$emit('update-tags', {
@@ -372,7 +344,6 @@ export default {
         });
       }
     },
-
 
     /* Для inline-редактирования */
     startEditing() {
