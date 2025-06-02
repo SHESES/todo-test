@@ -59,12 +59,12 @@
           <button
             type="button"
             class="relative inline-flex h-4 w-7 items-center rounded-full transition-colors cursor-pointer"
-            :class="showDone ? 'bg-red-600' : 'bg-gray-200'"
-            @click="showDone = !showDone"
+            :class="filters.show_completed ? 'bg-red-600' : 'bg-gray-200'"
+            @click="filters.show_completed = !filters.show_completed"
           >
             <span
               class="inline-block h-2 w-2 transform rounded-full bg-white transition-transform"
-              :class="showDone ? 'translate-x-4' : 'translate-x-1'"
+              :class="filters.show_completed ? 'translate-x-4' : 'translate-x-1'"
             />
           </button>
         </div>
@@ -72,7 +72,7 @@
         <!-- Сортировка -->
         <div class="mb-4">
           <label class="block text-sm font-medium mb-1">Сортировка</label>
-          <select v-model="sortBy" class="w-full border-gray-300 rounded-md cursor-pointer">
+          <select v-model="filters.sort_by" class="w-full border-gray-300 rounded-md cursor-pointer">
             <option value="title">По названию</option>
             <option value="createdAt">По дате создания</option>
             <option value="updatedAt">По дате изменения</option>
@@ -86,9 +86,42 @@
         <!-- Теги -->
         <div class="mb-4">
           <label class="block text-sm font-medium mb-1">Теги</label>
-          <select v-model="selectedTags" multiple class="w-full border-gray-300 rounded-md">
-            <option v-for="tag in allTags" :key="tag" :value="tag">{{ tag }}</option>
-          </select>
+          <div class="flex flex-wrap gap-2 mb-2 min-h-[32px]">
+            <template v-if="filters.tags.length">
+              <span
+                v-for="tag in filters.tags"
+                :key="tag"
+                class="px-2 py-1 rounded-full bg-gray-200 text-sm text-gray-800 border border-gray-300"
+              >
+                {{ tag }}
+              </span>
+            </template>
+            <span v-else class="text-gray-500 text-sm">Все отображаются</span>
+          </div>
+
+          <div class="flex flex-col gap-2 max-h-40 overflow-y-auto">
+            <label
+              v-for="tag in allTags"
+              :key="tag"
+              class="flex items-center cursor-pointer text-sm"
+            >
+              <input
+                type="checkbox"
+                :value="tag"
+                v-model="filters.tags"
+                class="mr-2 rounded"
+              />
+              {{ tag }}
+            </label>
+          </div>
+
+          <button
+            v-if="filters.tags.length"
+            @click.stop="filters.tags = []"
+            class="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+          >
+            Сбросить теги
+          </button>
         </div>
 
         <!-- Статусы -->
@@ -101,13 +134,23 @@
               @click="toggleStatusFilter(s)"
               class="status inline-flex px-3 py-1 text-l font-medium cursor-pointer border rounded-full"
               :class="{
-                'bg-gray-200 border-gray-400 text-gray-700': !statusFilters.includes(s),
-                [s]: statusFilters.includes(s)
+                'bg-gray-200 border-gray-400 text-gray-700': !filters.statuses.includes(s),
+                [s]: filters.statuses.includes(s)
               }"
             >
               {{ getStatusText(s) }}
             </button>
           </div>
+        </div>
+
+        <!-- Сброс всех фильтров -->
+        <div class="mt-6">
+          <button
+            @click="resetFilters"
+            class="w-full text-sm text-red-600 hover:text-red-700 border border-red-300 hover:border-red-700 px-4 py-2 rounded-md"
+          >
+            Сбросить все фильтры
+          </button>
         </div>
 
         <!-- Импорт / экспорт -->
@@ -134,9 +177,6 @@
 <script>
 export default {
   name: 'SettingsPanel',
-  props: {
-    allTags: Array
-  },
   mounted() {
     document.addEventListener('click', this.handleClickOutside);
   },
@@ -146,11 +186,15 @@ export default {
   data() {
     return {
       panelOpen: false,
-      showDone: true,
-      sortBy: 'updatedAt',
-      selectedTags: [],
-      statuses: ['todo', 'in-progress', 'done'],
-      statusFilters: ['todo', 'in-progress', 'done']
+      statuses: ['todo', 'in-progress', 'done']
+    }
+  },
+  watch: {
+    filters: {
+      handler(newVal) {
+        console.log('Filters changed:', newVal);
+      },
+      deep: true,
     }
   },
   computed: {
@@ -161,6 +205,24 @@ export default {
       set(value) {
         this.$store.commit('SET_FILTERS', value);
       }
+    },
+    projects() {
+      return this.$store.getters.PROJECTS ? this.$store.getters.PROJECTS : [];
+    },
+    allTags() {
+      const tagsSet = new Set()
+
+      for (const project of this.projects) {
+        const tasks = project.tasks || []
+        for (const task of tasks) {
+          ;(task.tags || []).forEach(tag => tagsSet.add(tag))
+          const subtasks = task.subtasks || []
+          for (const subtask of subtasks) {
+            ;(subtask.tags || []).forEach(tag => tagsSet.add(tag))
+          }
+        }
+      }
+      return Array.from(tagsSet)
     }
   },
   methods: {
@@ -182,11 +244,15 @@ export default {
       }
     },
     toggleStatusFilter(status) {
-      if (this.statusFilters.includes(status)) {
-        this.statusFilters = this.statusFilters.filter(s => s !== status);
+      if (this.filters.statuses.includes(status)) {
+        this.filters.statuses = this.filters.statuses.filter(s => s !== status);
       } else {
-        this.statusFilters.push(status);
+        this.filters.statuses.push(status);
       }
+    },
+    resetFilters() {
+      console.log('reset filters');
+      this.$store.dispatch('RESET_FILTERS');
     }
   }
 }

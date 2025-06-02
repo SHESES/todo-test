@@ -204,9 +204,9 @@
       </p>
 
       <!-- Дата изменения -->
-      <p class="text-sm text-gray-500 mt-4">
-        Изменено: {{ formatDate(task.updatedAt) }}
-      </p>
+<!--      <p class="text-sm text-gray-500 mt-4">-->
+<!--        Изменено: {{ formatDate(task.updatedAt) }}-->
+<!--      </p>-->
     </div>
   </div>
 </template>

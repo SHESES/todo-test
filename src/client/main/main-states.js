@@ -1,7 +1,9 @@
 const standart_filters = {
     statuses: ["todo", "done", "in-progress"],
-    tags: ["work", "personal"],
-    search: "строка поиска"
+    tags: [],
+    search: "",
+    sort_by: "updatedAt",
+    show_completed: true
 };
 
 const for_test = [
@@ -106,7 +108,7 @@ const mutations = {
         localStorage.setItem("data", JSON.stringify(state.data));
     },
     SET_FILTERS: (state, payload) => {
-        state.data.filters = payload;
+        state.data.filters = { ...payload };
         localStorage.setItem('data', JSON.stringify(state.data));
     },
 
@@ -117,6 +119,19 @@ const mutations = {
 };
 
 const actions = {
+    RESET_FILTERS: (context) => {
+        return new Promise((resolve) => {
+            let standart = {
+                statuses: ["todo", "done", "in-progress"],
+                tags: [],
+                search: "",
+                sort_by: "updatedAt",
+                show_completed: true
+            };
+            context.commit('SET_FILTERS', standart);
+            resolve();
+        });
+    },
 };
 
 export default {

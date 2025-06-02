@@ -1,11 +1,28 @@
 <template>
   <div class="min-h-screen bg-gray-50 p-8">
 
-    <SettingsPanel/>
+    <div class="flex items-center gap-4 mb-6 w-full">
+      <!-- Поиск -->
+      <div class="relative flex-grow">
+        <svg class="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none"
+             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          v-model="filters.search"
+          placeholder="Поиск..."
+          class="w-full pl-[36px] pb-1 border-b border-gray-300 focus:outline-none focus:border-gray-600 text-gray-700"
+        />
+      </div>
+
+      <SettingsPanel />
+    </div>
 
     <div class="space-y-4">
       <!-- Проекты -->
-      <div v-for="project in projects" :key="project.id" class="project-container">
+      <div v-for="project in filteredProjects" :key="project.id" class="project-container">
         <!-- Заголовок проекта -->
         <div class="flex items-center gap-2 mb-2">
           <!-- Иконка сворачивания -->
@@ -147,6 +164,47 @@ export default {
       set(value) {
         this.$store.commit('SET_OPENED_PROJECTS', value);
       }
+    },
+    filteredProjects() {
+      return this.projects.map(project => {
+        let filteredTasks = project.tasks || [];
+
+        // Фильтрация по статусу
+        filteredTasks = filteredTasks.filter(task =>
+          this.filters.statuses.includes(task.status)
+        );
+
+        // Фильтрация по тегам (если указаны)
+        if (this.filters.tags.length) {
+          filteredTasks = filteredTasks.filter(task =>
+            task.tags?.some(tag => this.filters.tags.includes(tag))
+          );
+        }
+
+        // Фильтрация по названию
+        if (this.filters.search.trim()) {
+          const searchLower = this.filters.search.toLowerCase();
+          filteredTasks = filteredTasks.filter(task =>
+            task.title.toLowerCase().includes(searchLower)
+          );
+        }
+
+        // Показывать только не завершённые, если `show_completed` выключен
+        if (!this.filters.show_completed) {
+          filteredTasks = filteredTasks.filter(task => task.status !== 'done');
+        }
+
+        // Сортировка
+        filteredTasks = filteredTasks.sort((a, b) => {
+          const key = this.filters.sort_by || 'updatedAt';
+          return new Date(b[key]) - new Date(a[key]); // по убыванию (новее — выше)
+        });
+
+        return {
+          ...project,
+          tasks: filteredTasks
+        };
+      });
     }
   },
   created() {
