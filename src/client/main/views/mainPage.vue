@@ -397,22 +397,23 @@ export default {
       // Фильтрация по статусу
       let filtered = tasks.filter(task => this.filters.statuses.includes(task.status));
 
-      // Фильтрация по тегам
+      // Фильтрация по тегам — если есть фильтр, но задачи без тегов всегда оставляем
       if (this.filters.tags.length) {
         filtered = filtered.filter(task =>
-          task.tags?.some(tag => this.filters.tags.includes(tag))
+          (task.tags && task.tags.length > 0 && task.tags.some(tag => this.filters.tags.includes(tag))) ||
+          !task.tags || task.tags.length === 0
         );
       }
 
-      // Фильтрация по названию
+      // Фильтрация по названию — если есть поиск, но задачи с названием "Без названия" всегда оставляем
       if (this.filters.search.trim()) {
         const searchLower = this.filters.search.toLowerCase();
         filtered = filtered.filter(task =>
-          task.title.toLowerCase().includes(searchLower)
+          task.title.toLowerCase().includes(searchLower) || task.title === "Без названия"
         );
       }
 
-      // Показывать только не завершённые, если `show_completed` выключен
+      // Показывать только не завершённые, если show_completed выключен
       if (!this.filters.show_completed) {
         filtered = filtered.filter(task => task.status !== 'done');
       }
