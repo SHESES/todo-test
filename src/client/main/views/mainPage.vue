@@ -1,6 +1,8 @@
 <template>
   <div class="min-h-screen bg-gray-50 p-8">
 
+    <SettingsPanel/>
+
     <div class="space-y-4">
       <!-- Проекты -->
       <div v-for="project in projects" :key="project.id" class="project-container">
@@ -107,10 +109,14 @@
 <script>
 import { v4 as uuidv4 } from 'uuid';
 import TaskCard from "main/views/TaskCard.vue";
+import SettingsPanel from "main/views/settings.vue";
 
 export default {
   name: 'mainPage',
-  components: { TaskCard },
+  components: {
+    TaskCard,
+    SettingsPanel
+  },
   data() {
     return {
       editingProjectId: null,

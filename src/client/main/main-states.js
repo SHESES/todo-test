@@ -1,90 +1,94 @@
-const state = {
-    data: {
-        projects: [
+const standart_filters = {
+    statuses: ["todo", "done", "in-progress"],
+    tags: ["work", "personal"],
+    search: "строка поиска"
+};
+
+const for_test = [
+    {
+        id: 'p1',
+        name: 'Основной проект',
+        tasks: [
             {
-                id: 'p1',
-                name: 'Основной проект',
-                tasks: [
+                id: '1',
+                title: 'Разработать главную страницу',
+                status: 'in-progress',
+                tags: ['frontend', 'design'],
+                subtasks: [
                     {
-                        id: '1',
-                        title: 'Разработать главную страницу',
-                        status: 'in-progress',
-                        tags: ['frontend', 'design'],
-                        subtasks: [
-                            {
-                                id: '1-1',
-                                title: 'Сверстать хедер',
-                                status: 'done',
-                                tags: ['frontend'],
-                                createdAt: new Date('2023-05-15'),
-                                updatedAt: new Date('2023-05-16')
-                            },
-                            {
-                                id: '1-2',
-                                title: 'Сделать адаптив',
-                                status: 'todo',
-                                tags: ['frontend', 'responsive'],
-                                createdAt: new Date('2023-05-15'),
-                                updatedAt: new Date('2023-05-16')
-                            }
-                        ],
+                        id: '1-1',
+                        title: 'Сверстать хедер',
+                        status: 'done',
+                        tags: ['frontend'],
                         createdAt: new Date('2023-05-15'),
                         updatedAt: new Date('2023-05-16')
                     },
                     {
-                        id: '2',
-                        title: 'Написать API для задач',
+                        id: '1-2',
+                        title: 'Сделать адаптив',
                         status: 'todo',
-                        tags: ['backend', 'nodejs'],
-                        subtasks: [],
-                        createdAt: new Date('2023-05-10'),
-                        updatedAt: new Date('2023-05-10')
+                        tags: ['frontend', 'responsive'],
+                        createdAt: new Date('2023-05-15'),
+                        updatedAt: new Date('2023-05-16')
                     }
-                ]
+                ],
+                createdAt: new Date('2023-05-15'),
+                updatedAt: new Date('2023-05-16')
             },
             {
-                id: 'p2',
-                name: 'Второстепенный проект',
-                tasks: [
-                    {
-                        id: '3',
-                        title: 'Разработать логику для задач',
-                        status: 'done',
-                        tags: ['frontend', 'logic'],
-                        createdAt: new Date('2025-06-01'),
-                        updatedAt: new Date('2025-06-01')
-                    },
-                    {
-                        id: '4',
-                        title: 'Протестировать API',
-                        status: 'in-progress',
-                        tags: ['testing', 'backend'],
-                        createdAt: new Date('2025-06-02'),
-                        updatedAt: new Date('2025-06-02')
-                    }
-                ]
-            },
-            {
-                id: 'p3',
-                name: 'Личный проект',
-                tasks: [
-                    {
-                        id: '5',
-                        title: 'Добавить аутентификацию',
-                        status: 'todo',
-                        tags: ['security', 'backend'],
-                        subtasks: [],
-                        createdAt: new Date('2025-06-03'),
-                        updatedAt: new Date('2025-06-03')
-                    }
-                ]
+                id: '2',
+                title: 'Написать API для задач',
+                status: 'todo',
+                tags: ['backend', 'nodejs'],
+                subtasks: [],
+                createdAt: new Date('2023-05-10'),
+                updatedAt: new Date('2023-05-10')
             }
-        ],
-        filters: {
-            statuses: [ "todo", "done", "in-progress" ],
-            tags: [ "work", "personal" ],
-            search: "строка поиска"
-        }
+        ]
+    },
+    {
+        id: 'p2',
+        name: 'Второстепенный проект',
+        tasks: [
+            {
+                id: '3',
+                title: 'Разработать логику для задач',
+                status: 'done',
+                tags: ['frontend', 'logic'],
+                createdAt: new Date('2025-06-01'),
+                updatedAt: new Date('2025-06-01')
+            },
+            {
+                id: '4',
+                title: 'Протестировать API',
+                status: 'in-progress',
+                tags: ['testing', 'backend'],
+                createdAt: new Date('2025-06-02'),
+                updatedAt: new Date('2025-06-02')
+            }
+        ]
+    },
+    {
+        id: 'p3',
+        name: 'Личный проект',
+        tasks: [
+            {
+                id: '5',
+                title: 'Добавить аутентификацию',
+                status: 'todo',
+                tags: ['security', 'backend'],
+                subtasks: [],
+                createdAt: new Date('2025-06-03'),
+                updatedAt: new Date('2025-06-03')
+            }
+        ]
+    }
+];
+
+const state = {
+    data: {
+        projects: for_test,
+        filters: standart_filters
     },
     openedProjects: JSON.parse(localStorage.getItem("openedProjects")) || [],
 };
