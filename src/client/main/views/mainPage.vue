@@ -361,6 +361,8 @@ export default {
       if (!task) return;
       task.subtasks = task.subtasks.filter(st => st.id !== subtaskId);
       task.updatedAt = new Date().toISOString();
+
+      this.projects = [...this.projects]; // чтобы триггернуть реактивность
     },
     handleUpdateTask({ projectId, taskId, subtasks }) {
       const projectIndex = this.projects.findIndex(p => p.id === projectId);

@@ -147,7 +147,7 @@
 
 
       <!-- Кнопка раскрытия подзадач -->
-      <div v-if="task.subtasks" class="mb-4">
+      <div v-if="task.subtasks && allowSubtasks" class="mb-4">
         <button
             @click="showSubtasks = !showSubtasks"
             class="flex items-center text-sm text-gray-600 cursor-pointer"
@@ -189,6 +189,7 @@
             :parent-task-id="task.id"
             @toggle-task="emitToggleSubtask"
             @delete-task="emitDeleteSubtask"
+            :allow-subtasks="false"
             @toggle-subtask="$emit('toggle-subtask', $event)"
             @delete-subtask="$emit('delete-subtask', $event)"
             @update-title="$emit('update-title', $event)"
@@ -219,7 +220,11 @@ export default {
   props: {
     task: Object,
     projectId: String,
-    parentTaskId: String
+    parentTaskId: String,
+    allowSubtasks: {
+      type: Boolean,
+      default: true
+    }
   },
   data() {
     return {
@@ -265,7 +270,6 @@ export default {
         title: 'Без имени',
         status: 'todo',
         tags: [],
-        subtasks: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
