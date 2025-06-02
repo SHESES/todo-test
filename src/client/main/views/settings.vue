@@ -153,21 +153,90 @@
           </button>
         </div>
 
-        <!-- Импорт / экспорт -->
-        <div class="flex justify-start gap-4 mt-4">
-          <button class="flex items-center text-red-600 hover:text-red-800 font-medium cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+
+        <div class="flex flex-col gap-4 mt-4 max-w-md">
+          <div
+            class="flex items-center cursor-pointer select-none"
+            @click="showImportForm = !showImportForm"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-1 text-gray-600 transition-transform duration-200"
+              :class="{ 'rotate-90': showImportForm }"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            Импорт
-          </button>
-          <button class="flex items-center text-red-600 hover:text-red-800 font-medium cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            <span :class="showImportForm ? 'font-semibold' : ''">Импорт</span>
+          </div>
+
+          <transition name="accordion">
+            <div
+              v-if="showImportForm"
+              class="p-4 border rounded border-gray-300 bg-gray-50"
+            >
+              <input
+                type="file"
+                @change="onFileChange"
+                accept=".txt"
+                class="block w-full mb-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300"
+              />
+              <input
+                type="password"
+                v-model="importKey"
+                placeholder="Пароль для импорта"
+                class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-gray-400"
+              />
+              <button
+                @click="importData"
+                class="w-full bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2 rounded mt-2 transition"
+              >
+                Импортировать
+              </button>
+            </div>
+          </transition>
+
+          <div
+            class="flex items-center cursor-pointer select-none"
+            @click="showExportForm = !showExportForm"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-1 text-gray-600 transition-transform duration-200"
+              :class="{ 'rotate-90': showExportForm }"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            Экспорт
-          </button>
+            <span :class="showExportForm ? 'font-semibold' : ''">Экспорт</span>
+          </div>
+
+          <transition name="accordion">
+            <div
+              v-if="showExportForm"
+              class="p-4 border rounded border-gray-300 bg-gray-50"
+            >
+              <input
+                type="password"
+                v-model="exportKey"
+                placeholder="Пароль для экспорта"
+                class="w-full mb-2 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-gray-400"
+              />
+              <button
+                @click="exportData"
+                class="w-full bg-gray-700 text-white py-2 rounded"
+              >
+                Экспортировать
+              </button>
+            </div>
+          </transition>
         </div>
+
+
 
       </div>
     </transition>
@@ -175,6 +244,8 @@
 </template>
 
 <script>
+import CryptoJS from 'crypto-js';
+
 export default {
   name: 'SettingsPanel',
   mounted() {
@@ -186,7 +257,14 @@ export default {
   data() {
     return {
       panelOpen: false,
-      statuses: ['todo', 'in-progress', 'done']
+      statuses: ['todo', 'in-progress', 'done'],
+
+      showExportForm: false,
+      showImportForm: false,
+
+      exportKey: '',
+      importKey: '',
+      importFile: null,
     }
   },
   watch: {
@@ -226,6 +304,71 @@ export default {
     }
   },
   methods: {
+    // Экспорт данных с шифрованием
+    exportData() {
+      if (!this.exportKey) {
+        alert('Введите пароль для экспорта');
+        return;
+      }
+
+      const dataToExport = JSON.stringify({
+        filters: this.filters,
+        projects: this.projects,
+      });
+
+      // Шифруем
+      const encrypted = CryptoJS.AES.encrypt(dataToExport, this.exportKey).toString();
+
+      // Создаем ссылку для скачивания
+      const blob = new Blob([encrypted], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `export_${new Date().toISOString()}.txt`;
+      a.click();
+
+      URL.revokeObjectURL(url);
+    },
+
+    // Обработчик выбора файла для импорта
+    onFileChange(event) {
+      this.importFile = event.target.files[0];
+    },
+
+    // Импорт данных с расшифровкой
+    async importData() {
+      if (!this.importKey) {
+        alert('Введите пароль для импорта');
+        return;
+      }
+      if (!this.importFile) {
+        alert('Выберите файл для импорта');
+        return;
+      }
+
+      const text = await this.importFile.text();
+
+      try {
+        const bytes = CryptoJS.AES.decrypt(text, this.importKey);
+        const decryptedText = bytes.toString(CryptoJS.enc.Utf8);
+
+        if (!decryptedText) throw new Error('Неверный пароль или поврежденный файл');
+
+        const importedData = JSON.parse(decryptedText);
+
+        // Записываем в стор
+        this.$store.commit('SET_FILTERS', importedData.filters);
+        this.$store.commit('SET_PROJECTS', importedData.projects);
+
+        alert('Импорт выполнен успешно');
+        this.panelOpen = false;
+      } catch (e) {
+        alert('Ошибка при импорте: ' + e.message);
+      }
+    },
+
+
     handleClickOutside(e) {
       if (!this.$el.contains(e.target)) {
         this.panelOpen = false;
@@ -248,6 +391,15 @@ export default {
         this.filters.statuses = this.filters.statuses.filter(s => s !== status);
       } else {
         this.filters.statuses.push(status);
+      }
+    },
+    togglePanel(panel) {
+      if (panel === 'import') {
+        this.showImportForm = !this.showImportForm;
+        if (this.showImportForm) this.showExportForm = false;
+      } else if (panel === 'export') {
+        this.showExportForm = !this.showExportForm;
+        if (this.showExportForm) this.showImportForm = false;
       }
     },
     resetFilters() {
