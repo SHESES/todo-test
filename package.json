@@ -19,6 +19,7 @@
     "vue-router": "^4.4.5",
     "vuex": "^4.1.0",
     "uuid": "^11.1.0",
-    "crypto-js": "^4.2.0"
+    "crypto-js": "^4.2.0",
+    "sweetalert2": "^11.22.0"
   }
 }

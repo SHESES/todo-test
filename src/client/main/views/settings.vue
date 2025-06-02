@@ -307,7 +307,12 @@ export default {
     // Экспорт данных с шифрованием
     exportData() {
       if (!this.exportKey) {
-        alert('Введите пароль для экспорта');
+        this.$swal.fire({
+          title: 'Ошибка',
+          text: 'Введите пароль для экспорта',
+          icon: 'error',
+          confirmButtonText: 'Ок',
+        });
         return;
       }
 
@@ -339,11 +344,21 @@ export default {
     // Импорт данных с расшифровкой
     async importData() {
       if (!this.importKey) {
-        alert('Введите пароль для импорта');
+        this.$swal.fire({
+          title: 'Ошибка',
+          text: 'Введите пароль для импорта',
+          icon: 'error',
+          confirmButtonText: 'Понятно',
+        });
         return;
       }
       if (!this.importFile) {
-        alert('Выберите файл для импорта');
+        this.$swal.fire({
+          title: 'Ошибка',
+          text: 'Введите пароль для импорта',
+          icon: 'error',
+          confirmButtonText: 'Ок',
+        });
         return;
       }
 
@@ -361,10 +376,20 @@ export default {
         this.$store.commit('SET_FILTERS', importedData.filters);
         this.$store.commit('SET_PROJECTS', importedData.projects);
 
-        alert('Импорт выполнен успешно');
+        this.$swal.fire({
+          title: 'Ура',
+          text: 'Импорт выполнен успешно',
+          icon: 'success',
+          confirmButtonText: 'Ок',
+        });
         this.panelOpen = false;
       } catch (e) {
-        alert('Ошибка при импорте: ' + e.message);
+        this.$swal.fire({
+          title: 'Ошибка',
+          text: 'Неверный пароль или поврежденный файл',
+          icon: 'error',
+          confirmButtonText: 'Ок',
+        });
       }
     },
 
